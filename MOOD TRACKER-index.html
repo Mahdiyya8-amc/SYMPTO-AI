@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Mood Tracker</h1>
+
+        <div class="entry-form">
+            <input type="date" id="entry-date" class="large-input">
+
+            <!-- Mood picker -->
+            <select id="mood-picker" class="large-input">
+                <option value="">Select your mood</option>
+                <option value="😄">Happy 😄</option>
+                <option value="😢">Sad 😢</option>
+                <option value="😐">Neutral 😐</option>
+                <option value="😠">Angry 😠</option>
+                <option value="🤩">Excited 🤩</option>
+            </select>
+
+            <textarea id="entry-text" placeholder="Write your mood or thoughts..." class="large-input"></textarea>
+
+            <button id="add-entry-btn" class="large-btn">Add Entry</button>
+        </div>
+
+        <!-- Theme selector -->
+        <div class="theme-selector">
+            <label for="theme-color">Choose Theme Color: </label>
+            <input type="color" id="theme-color" value="#ff7f50">
+        </div>
+
+        <!-- Show previous entries button -->
+        <button id="toggle-entries-btn" class="large-btn">Show Previous Entries</button>
+
+    <div id="entries-container" class="hidden">
+        <ul id="entries-list"></ul>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
