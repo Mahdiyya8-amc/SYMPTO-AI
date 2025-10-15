@@ -1,101 +1,128 @@
-const addBtn = document.getElementById('add-entry-btn');
-const entriesList = document.getElementById('entries-list');
-const entryDate = document.getElementById('entry-date');
-const entryText = document.getElementById('entry-text');
-const moodPicker = document.getElementById('mood-picker');
-const toggleBtn = document.getElementById('toggle-entries-btn');
-const themeColorPicker = document.getElementById('theme-color');
+// === ELEMENTS ===
+const dateInput = document.getElementById("entry-date");
+const moodPicker = document.getElementById("mood-picker");
+const entryText = document.getElementById("entry-text");
+const addEntryBtn = document.getElementById("add-entry-btn");
+const entriesList = document.getElementById("entries-list");
+const toggleEntriesBtn = document.getElementById("toggle-entries-btn");
+const entriesContainer = document.getElementById("entries-container");
+const themeColorInput = document.getElementById("theme-color");
 
-let entries = JSON.parse(localStorage.getItem('entries')) || [];
+// === LOAD EXISTING ENTRIES ===
+let entries = JSON.parse(localStorage.getItem("moodEntries")) || [];
 
-// Render all entries
-function renderEntries() {
-    entriesList.innerHTML = '';
-    entries.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.className = 'entry-item';
-
-        li.innerHTML = `
-            <div class="entry-top">
-                <span class="entry-mood">${entry.mood}</span>
-                <span class="entry-date">${entry.date}</span>
-            </div>
-            <span class="entry-text">${entry.text}</span>
-            <div class="entry-buttons">
-                <button class="edit-btn">Edit</button>
-                <button class="delete-btn">Delete</button>
-            </div>
-        `;
-
-        // Delete
-        li.querySelector('.delete-btn').addEventListener('click', () => {
-            entries.splice(index, 1);
-            saveAndRender();
+// === DISPLAY ENTRIES ===
+function displayEntries() {
+    entriesList.innerHTML = "";
+    if (entries.length === 0) {
+        entriesList.innerHTML = "<li>No entries yet.</li>";
+    } else {
+        entries.forEach(entry => {
+            const li = document.createElement("li");
+            li.classList.add("entry-item");
+            li.textContent = `${entry.date} — ${entry.mood} — ${entry.text}`;
+            entriesList.appendChild(li);
         });
-
-        // Edit
-        li.querySelector('.edit-btn').addEventListener('click', () => {
-            const newText = prompt("Edit your entry:", entry.text);
-            if (newText !== null && newText.trim() !== '') {
-                entries[index].text = newText;
-                saveAndRender();
-            }
-        });
-
-        entriesList.appendChild(li);
-    });
+    }
 }
 
-// Save to localStorage & render
-function saveAndRender() {
-    localStorage.setItem('entries', JSON.stringify(entries));
-    renderEntries();
+// === SAVE ENTRIES ===
+function saveEntries() {
+    localStorage.setItem("moodEntries", JSON.stringify(entries));
+    displayEntries();
+    updateChart();
 }
 
-// Add new entry
-addBtn.addEventListener('click', () => {
-    const date = entryDate.value;
-    const text = entryText.value.trim();
+// === ADD ENTRY ===
+addEntryBtn.addEventListener("click", () => {
+    const date = dateInput.value;
     const mood = moodPicker.value;
-    if (!date || !text || !mood) {
-        alert("Please fill date, mood, and entry.");
+    const text = entryText.value.trim();
+
+    if (!date || !mood) {
+        alert("Please select a date and mood!");
         return;
     }
-    entries.push({ date, text, mood });
-    entryText.value = '';
-    entryDate.value = '';
-    moodPicker.value = '';
-    saveAndRender();
 
-    // Slide down entries automatically when a new entry is added
-if (!entriesContainer.classList.contains('show')) {
-    entriesContainer.classList.add('show');
-    toggleBtn.textContent = "Hide Previous Entries";
+    entries.push({ date, mood, text });
+    saveEntries();
+
+    entryText.value = "";
+    moodPicker.value = "";
+    dateInput.value = "";
+});
+
+// === TOGGLE ENTRIES ===
+toggleEntriesBtn.addEventListener("click", () => {
+    entriesContainer.classList.toggle("show");
+    toggleEntriesBtn.textContent = entriesContainer.classList.contains("show")
+        ? "Hide Previous Entries"
+        : "Show Previous Entries";
+});
+
+// === THEME COLOR ===
+themeColorInput.addEventListener("input", e => {
+    document.body.style.backgroundColor = e.target.value + "20";
+    document.querySelector("h1").style.color = e.target.value;
+});
+
+// === CHART.JS MOOD PERCENTAGE ===
+const ctx = document.getElementById("moodChart").getContext("2d");
+
+function calculateMoodPercentages() {
+    const moodCounts = { "😄": 0, "😢": 0, "😐": 0, "😠": 0, "🤩": 0 };
+    entries.forEach(entry => {
+        if (moodCounts[entry.mood] !== undefined) moodCounts[entry.mood]++;
+    });
+    const total = entries.length || 1;
+    return Object.values(moodCounts).map(count => ((count / total) * 100).toFixed(1));
 }
 
-    // Show entries if hidden
-if (entriesContainer.classList.contains('hidden')) {
-    entriesContainer.classList.remove('hidden');
-    toggleBtn.textContent = "Hide Previous Entries";
+// Create chart
+const moodChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+        labels: ["Happy 😄", "Sad 😢", "Neutral 😐", "Angry 😠", "Excited 🤩"],
+        datasets: [{
+            label: "Mood Percentage",
+            data: calculateMoodPercentages(),
+            backgroundColor: ["#FFD93D", "#6C63FF", "#FF6B6B", "#4ECDC4", "#FF9F1C"],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        plugins: {
+            title: { display: true, text: "Mood Percentage Overview" },
+            tooltip: {
+                callbacks: {
+                    label: context => `${context.label}: ${context.parsed}%`
+                }
+            },
+            legend: { position: "bottom" }
+        }
+    }
+});
+
+// === UPDATE CHART ===
+function updateChart() {
+    const percentages = calculateMoodPercentages();
+    moodChart.data.datasets[0].data = percentages;
+    moodChart.data.labels = [
+        `Happy 😄 (${percentages[0]}%)`,
+        `Sad 😢 (${percentages[1]}%)`,
+        `Neutral 😐 (${percentages[2]}%)`,
+        `Angry 😠 (${percentages[3]}%)`,
+        `Excited 🤩 (${percentages[4]}%)`
+    ];
+    moodChart.update();
 }
-});
 
-const entriesContainer = document.getElementById('entries-container');
+// === INITIAL LOAD ===
+displayEntries();
+updateChart();
 
-// Toggle entries visibility
-toggleBtn.addEventListener('click', () => {
-    entriesContainer.classList.toggle('show'); // toggle slide effect
-    toggleBtn.textContent = entriesContainer.classList.contains('show') ? "Hide Previous Entries" : "Show Previous Entries";
-});
-
-// Theme selector
-themeColorPicker.addEventListener('input', () => {
-    document.documentElement.style.setProperty('--theme-color', themeColorPicker.value);
-    document.querySelectorAll('.large-btn').forEach(btn => btn.style.backgroundColor = themeColorPicker.value);
-    document.querySelectorAll('.large-btn').forEach(btn => btn.addEventListener('mouseover', () => {
-        btn.style.backgroundColor = themeColorPicker.value;
-    }));
-});
-
-// Initial render
-renderEntries();
+// === Show entries container if there are previous entries ===
+if (entries.length > 0) {
+    entriesContainer.classList.add("show");
+    toggleEntriesBtn.textContent = "Hide Previous Entries";
+}
