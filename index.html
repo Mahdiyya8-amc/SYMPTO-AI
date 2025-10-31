@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BMI Calculator — Cheerful & Professional</title>
+  <style>
+    :root{
+      --accent: #ff7aa2; /* default accent */
+      --bg-a: #fffbf7;
+      --bg-b: #ffffff;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --glass: rgba(255,255,255,0.6);
+      --radius: 14px;
+      --shadow: 0 6px 18px rgba(16,24,40,0.08);
+    }
+    .dark{
+      --bg-a: #07122a;
+      --bg-b: #0b1630;
+      --card: #0f1724;
+      --text: #e6eef8;
+      --muted: #98a6c0;
+      --glass: rgba(255,255,255,0.04);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial; color:var(--text);}
+    /* page background uses two vars for gradient that will be set from JS */
+    body{
+      background: linear-gradient(135deg,var(--bg-a),var(--bg-b));
+      transition: background 480ms ease;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .app{max-width:980px;margin:32px auto;padding:24px;display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start}
+
+    .card{background:linear-gradient(180deg,var(--card),rgba(255,255,255,0.98));border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    h1{font-size:20px;margin:0}
+    .sub{color:var(--muted);font-size:13px}
+
+    form .row{display:flex;gap:12px;margin-bottom:12px}
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input[type='number'], select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(16,24,40,0.06);background:var(--glass);color:var(--text);font-size:15px}
+    .controls{display:flex;gap:8px}
+    .btn{background:var(--accent);border:none;padding:10px 14px;border-radius:10px;color:white;cursor:pointer;font-weight:600;box-shadow:0 6px 12px rgba(0,0,0,0.08)}
+    .btn.secondary{background:transparent;color:var(--accent);border:2px solid rgba(0,0,0,0.06)}
+
+    /* Right column */
+    .right{position:relative}
+    .resultBox{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center;padding:20px;text-align:center}
+    .bmiNumber{font-size:44px;font-weight:800;padding:18px;border-radius:12px;min-width:180px}
+    .category{font-weight:700;font-size:16px}
+    .quote{font-size:16px;font-weight:600;padding:12px;border-radius:10px}
+
+    .infoList{margin-top:12px}
+    .infoItem{display:flex;justify-content:space-between;padding:10px;border-radius:10px;margin-bottom:8px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));}
+    .palette{display:flex;gap:8px;align-items:center}
+    .swatch{width:36px;height:36px;border-radius:8px;border:2px solid rgba(0,0,0,0.06);cursor:pointer}
+
+    .toggles{display:flex;gap:8px;align-items:center}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* Animations */
+    .fadeIn{animation:fadeIn 450ms ease both}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* popup (right-side glass modal) */
+    .popup {
+      position: fixed;
+      right: 48px;
+      top: 16%;
+      width: 360px;
+      max-width: calc(100% - 64px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
+      color: var(--text);
+      border-radius: 14px;
+      box-shadow: 0 18px 50px rgba(2,6,23,0.35);
+      padding: 18px;
+      backdrop-filter: blur(8px) saturate(120%);
+      transform: translateX(18px) translateY(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 420ms cubic-bezier(.2,.9,.2,1);
+      z-index: 1200;
+    }
+    .dark .popup {
+      background: linear-gradient(180deg, rgba(8,12,20,0.8), rgba(12,20,34,0.86));
+      color: var(--text);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+    }
+    .popup.show {
+      transform: translateX(0) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .popupHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .popupHeader h3{margin:0;font-size:16px}
+    .closeBtn{background:transparent;border:none;font-size:18px;cursor:pointer;padding:6px;border-radius:8px}
+    .chartRow{display:flex;align-items:center;gap:12px;padding:8px;border-radius:10px;margin-bottom:10px;background:transparent}
+    .sideBar{width:12px;height:44px;border-radius:6px;flex-shrink:0;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    .chartLabel{font-weight:700}
+    .chartRange{color:var(--muted);margin-left:auto;font-size:13px}
+
+    /* Responsive (laptop only preference) */
+    @media (max-width:920px){
+      .app{grid-template-columns:1fr;}
+      .popup{right:18px;left:18px;top:10%;width:auto}
+    }
+
+    /* legend pills used inside right result (kept from original) */
+    .legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .legend .leg{padding:8px;border-radius:8px;color:white;font-weight:600;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="header">
+        <div>
+          <h1>BMI Calculator</h1>
+          <div class="sub">Enter height (cm) and weight (kg). Age & gender are optional but useful for records.</div>
+        </div>
+        <div class="toggles">
+          <div class="small">Theme:</div>
+          <div class="palette">
+            <div class="swatch" data-color="#ff7aa2" style="background:#ff7aa2" title="Pink"></div>
+            <div class="swatch" data-color="#6ec1ff" style="background:#6ec1ff" title="Sky"></div>
+            <div class="swatch" data-color="#7bed9f" style="background:#7bed9f" title="Mint"></div>
+            <input id="customAccent" type="color" title="Pick custom accent" style="width:36px;height:36px;border-radius:8px;border:none;padding:0">
+          </div>
+          <div style="width:10px"></div>
+          <button id="themeToggle" class="btn secondary">Dark / Light</button>
+        </div>
+      </div>
+
+      <form id="bmiForm" onsubmit="return false;">
+        <div class="row">
+          <div style="flex:1">
+            <label for="weight">Weight (kg)</label>
+            <input id="weight" type="number" min="20" max="400" step="0.1" placeholder="e.g. 68" required>
+          </div>
+          <div style="flex:1">
+            <label for="height">Height (cm)</label>
+            <input id="height" type="number" min="80" max="250" step="0.1" placeholder="e.g. 165" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="age">Age</label>
+            <input id="age" type="number" min="5" max="120" placeholder="Optional">
+          </div>
+          <div style="flex:1">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Prefer not to say</option>
+              <option value="female">Female</option>
+              <option value="male">Male</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+          <button id="calcBtn" class="btn">Calculate BMI</button>
+          <button id="resetBtn" class="btn secondary" type="button">Reset</button>
+        </div>
+      </form>
+
+      <div class="infoList card" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-weight:700">Weight Categories & Ranges</div>
+          <div class="small">WHO-based ranges (for adults)</div>
+        </div>
+        <div class="infoItem"><div>Underweight</div><div>&lt; 18.5</div></div>
+        <div class="infoItem"><div>Normal</div><div>18.5 – 24.9</div></div>
+        <div class="infoItem"><div>Overweight</div><div>25.0 – 29.9</div></div>
+        <div class="infoItem"><div>Obese Category-1</div><div>30.0 – 34.9</div></div>
+        <div class="infoItem"><div>Obese Category-2</div><div>&ge; 35.0</div></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="card resultBox" id="resultCard">
+        <div class="sub">Result</div>
+        <div id="bmiDisplay" class="bmiNumber fadeIn" style="background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(0,0,0,0.02))">—</div>
+        <div id="categoryText" class="category">Enter your details and press Calculate</div>
+        <div id="quoteBox" class="quote" style="display:none">Motivational message</div>
+
+        <div class="legend">
+          <div class="leg" style="background:#8B0000">Underweight</div>
+          <div class="leg" style="background:#28a745">Normal</div>
+          <div class="leg" style="background:#ffcc00;color:#111">Overweight</div>
+          <div class="leg" style="background:#ff8c00">Obese 1</div>
+          <div class="leg" style="background:#b30000">Obese 2</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT-SIDE POPUP -->
+  <div id="bmiPopup" class="popup" aria-hidden="true">
+    <div class="popupHeader">
+      <h3>BMI Categories</h3>
+      <button id="closePopup" class="closeBtn" title="Close">✕</button>
+    </div>
+
+    <div class="chartRow">
+      <div class="sideBar" style="background:#67000d"></div>
+      <div class="chartLabel">Underweight</div>
+      <div class="chartRange">&lt; 18.5</div>
+    </div>
+
+    <div class="chartRow">
+      <div class="sideBar" style="background:#28a745"></div>
+      <div class="chartLabel">Normal</div>
+      <div class="chartRange">18.5 – 24.9</div>
+    </div>
+
+    <div class="chartRow">
+      <div class="sideBar" style="background:#ffcc00"></div>
+      <div class="chartLabel">Overweight</div>
+      <div class="chartRange">25.0 – 29.9</div>
+    </div>
+
+    <div class="chartRow">
+      <div class="sideBar" style="background:#ff8c00"></div>
+      <div class="chartLabel">Obese Category-1</div>
+      <div class="chartRange">30.0 – 34.9</div>
+    </div>
+
+    <div class="chartRow">
+      <div class="sideBar" style="background:#b30000"></div>
+      <div class="chartLabel">Obese Category-2</div>
+      <div class="chartRange">≥ 35.0</div>
+    </div>
+  </div>
+
+  <script>
+    // DOM
+    const body = document.body;
+    const themeToggle = document.getElementById('themeToggle');
+    const swatches = document.querySelectorAll('.swatch');
+    const customAccent = document.getElementById('customAccent');
+    const calcBtn = document.getElementById('calcBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const weightIn = document.getElementById('weight');
+    const heightIn = document.getElementById('height');
+    const ageIn = document.getElementById('age');
+    const genderIn = document.getElementById('gender');
+    const bmiDisplay = document.getElementById('bmiDisplay');
+    const categoryText = document.getElementById('categoryText');
+    const quoteBox = document.getElementById('quoteBox');
+
+    const popup = document.getElementById('bmiPopup');
+    const closePopup = document.getElementById('closePopup');
+
+    // Colors mapping stops (ensure overweight uses yellow)
+    const stops = [
+      {b:0, color:'#67000d'},
+      {b:18.5, color:'#b30000'},
+      {b:18.5, color:'#28a745'},
+      {b:24.9, color:'#28a745'},
+      {b:25, color:'#ffcc00'},
+      {b:29.9, color:'#ff8c00'},
+      {b:30, color:'#ff8c00'},
+      {b:34.9, color:'#ff6a00'},
+      {b:35, color:'#b30000'},
+      {b:80, color:'#4d0000'}
+    ];
+
+    function hexToRgb(hex){
+      const parsed = hex.replace('#','');
+      return [parseInt(parsed.slice(0,2),16),parseInt(parsed.slice(2,4),16),parseInt(parsed.slice(4,6),16)];
+    }
+    function rgbToHex(r,g,b){return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');}
+    function interpColor(c1,c2,t){
+      const a=hexToRgb(c1), b=hexToRgb(c2);
+      const r=Math.round(a[0]+(b[0]-a[0])*t);
+      const g=Math.round(a[1]+(b[1]-a[1])*t);
+      const bl=Math.round(a[2]+(b[2]-a[2])*t);
+      return rgbToHex(r,g,bl);
+    }
+
+    function getColorForBMI(bmi){
+      for(let i=0;i<stops.length-1;i++){
+        if(bmi>=stops[i].b && bmi<=stops[i+1].b){
+          const t = (bmi - stops[i].b)/(stops[i+1].b - stops[i].b || 1);
+          return interpColor(stops[i].color, stops[i+1].color, t);
+        }
+      }
+      return '#999';
+    }
+
+    function classifyBMI(bmi){
+      if(bmi < 18.5) return 'UNDERWEIGHT';
+      if(bmi < 25) return 'NORMAL';
+      if(bmi < 30) return 'OVERWEIGHT';
+      if(bmi < 35) return 'OBESE CATEGORY-1';
+      return 'OBESE CATEGORY-2';
+    }
+
+    const quotes = {
+      'UNDERWEIGHT': [
+        "Small steps. Big strength.",
+        "Nourish to flourish — you got this."],
+      'NORMAL': [
+        "You're in a healthy range — keep it up!",
+        "Consistency > perfection. Well done."],
+      'OVERWEIGHT': [
+        "Healthy habits are a journey, not a race.",
+        "Small changes add up — believe in the process."],
+      'OBESE CATEGORY-1': [
+        "You can start with one healthy choice today.",
+        "Support, patience and small wins will move mountains."],
+      'OBESE CATEGORY-2': [
+        "Talk to a professional and take gentle steps forward.",
+        "You are not alone — focus on tiny, sustainable wins." ]
+    };
+
+    function pickQuote(category){
+      const list = quotes[category] || ["Take care of yourself."];
+      return list[Math.floor(Math.random()*list.length)];
+    }
+
+    // Apply accent color
+    function setAccent(hex){
+      document.documentElement.style.setProperty('--accent', hex);
+      // tint cards/buttons with accent where relevant
+      document.querySelectorAll('.btn').forEach(btn=>{
+        if(!btn.classList.contains('secondary')) btn.style.background = hex;
+      });
+      // Also update popup sidebars lightly (keep original chart colors static for clarity)
+    }
+
+    // make a lighter variant for gradient
+    function lightenColor(hex, percent){
+      const num = parseInt(hex.replace('#',''),16);
+      const amt = Math.round(2.55 * percent);
+      let R = (num >> 16) + amt;
+      let G = (num >> 8 & 0x00FF) + amt;
+      let B = (num & 0x0000FF) + amt;
+      R = Math.max(0, Math.min(255,R));
+      G = Math.max(0, Math.min(255,G));
+      B = Math.max(0, Math.min(255,B));
+      return rgbToHex(R,G,B);
+    }
+
+    // handle swatches
+    swatches.forEach(s=>s.addEventListener('click', (e)=>{
+      const c = e.target.dataset.color;
+      setAccent(c);
+      customAccent.value = c;
+      // update page background gradient
+      const lighter = lightenColor(c, 34);
+      document.body.style.background = `linear-gradient(135deg, ${c}, ${lighter})`;
+      // adjust dark mode variant slightly if active
+      if(body.classList.contains('dark')){
+        document.body.style.background = `linear-gradient(135deg, ${lightenColor(c,-8)}, ${lightenColor(c,12)})`;
+      }
+    }));
+    // color picker
+    customAccent.addEventListener('input', (e)=>{
+      const c = e.target.value;
+      setAccent(c);
+      const lighter = lightenColor(c, 34);
+      document.body.style.background = `linear-gradient(135deg, ${c}, ${lighter})`;
+      if(body.classList.contains('dark')){
+        document.body.style.background = `linear-gradient(135deg, ${lightenColor(c,-8)}, ${lightenColor(c,12)})`;
+      }
+    });
+
+    // theme toggle
+    themeToggle.addEventListener('click', ()=>{
+      body.classList.toggle('dark');
+      // tweak gradient for dark mode when toggled
+      const currentAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff7aa2';
+      if(body.classList.contains('dark')){
+        document.body.style.background = `linear-gradient(135deg, ${lightenColor(currentAccent,-8)}, ${lightenColor(currentAccent,12)})`;
+      } else {
+        document.body.style.background = `linear-gradient(135deg, ${currentAccent}, ${lightenColor(currentAccent,34)})`;
+      }
+    });
+
+    // popup controls
+    function showPopup(){
+      popup.classList.add('show');
+      popup.setAttribute('aria-hidden','false');
+    }
+    function hidePopup(){
+      popup.classList.remove('show');
+      popup.setAttribute('aria-hidden','true');
+    }
+    closePopup.addEventListener('click', hidePopup);
+
+    // calculate
+    calcBtn.addEventListener('click', ()=>{
+      const w = parseFloat(weightIn.value);
+      const hCm = parseFloat(heightIn.value);
+      if(!w || !hCm || w<=0 || hCm<=0){
+        alert('Please enter valid height and weight');
+        return;
+      }
+      const h = hCm/100;
+      const bmi = +(w / (h*h)).toFixed(1);
+      const category = classifyBMI(bmi);
+      const color = getColorForBMI(bmi);
+
+      // display result
+      bmiDisplay.textContent = bmi;
+      bmiDisplay.style.background = `linear-gradient(90deg, rgba(255,255,255,0.03), rgba(0,0,0,0.03))`;
+      bmiDisplay.style.border = `4px solid ${color}`;
+      bmiDisplay.style.color = color;
+
+      categoryText.textContent = `Your BMI is ${bmi} and falls in the ${category} category.`;
+      categoryText.style.color = color;
+
+      quoteBox.style.display = 'block';
+      quoteBox.style.background = 'linear-gradient(90deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02))';
+      quoteBox.textContent = pickQuote(category);
+      quoteBox.style.fontSize = '16px';
+      quoteBox.classList.add('fadeIn');
+
+      // show popup automatically (right-side glass panel)
+      setTimeout(()=> showPopup(), 160);
+    });
+
+    resetBtn.addEventListener('click', ()=>{
+      weightIn.value = '';
+      heightIn.value = '';
+      ageIn.value = '';
+      genderIn.value = '';
+      bmiDisplay.textContent = '—';
+      bmiDisplay.style.border = 'none';
+      bmiDisplay.style.color = 'var(--text)';
+      categoryText.textContent = 'Enter your details and press Calculate';
+      categoryText.style.color = 'var(--muted)';
+      quoteBox.style.display = 'none';
+      hidePopup();
+    });
+
+    // initialize accent and background
+    (function init(){
+      const initial = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff7aa2';
+      setAccent(initial);
+      customAccent.value = initial;
+      const lighter = lightenColor(initial,34);
+      document.body.style.background = `linear-gradient(135deg, ${initial}, ${lighter})`;
+    })();
+
+  </script>
+</body>
+</html>
