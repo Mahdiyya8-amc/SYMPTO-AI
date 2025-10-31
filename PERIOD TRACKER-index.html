@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cycle Harmony</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🌸 Cycle Harmony</h1>
+    <div id="themeToggle" class="toggle">
+      <svg id="themeIcon" width="24" height="24" viewBox="0 0 24 24"></svg>
+    </div>
+  </header>
+
+  <main>
+    <section class="left-panel">
+      <div class="tracker-box">
+        <h2>Track Your Cycle</h2>
+        <label>Last Period Start Date:</label>
+        <input type="date" id="lastPeriod" />
+        <div class="btns">
+          <button id="calcBtn">Calculate</button>
+          <button id="predictBtn">Predict Next Period</button>
+        </div>
+        <p id="calcMsg" class="small-muted"></p>
+
+        <div class="day-phase-box">
+          <span id="dayDisplay">Day —</span>
+          <span id="phasePill" class="phase-pill">—</span>
+        </div>
+        <p id="wellnessMsg" class="wellness"></p>
+      </div>
+
+      <div class="chart-section">
+        <h3>Period Cycle Chart</h3>
+        <div class="chart-container">
+          <canvas id="cycleChart"></canvas>
+        </div>
+      </div>
+
+      <div class="phase-explainer">
+        <h3>Cycle Phases</h3>
+        <ul>
+          <li><strong>Menstrual:</strong> Rest, hydrate, and take it slow.</li>
+          <li><strong>Follicular:</strong> Energy rises — good for new starts.</li>
+          <li><strong>Ovulation:</strong> Confidence peak — socialize, move!</li>
+          <li><strong>Luteal:</strong> Wind down — focus on self-care & sleep.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="right-panel" id="entriesPanel">
+      <h2>Your Notes</h2>
+      <form id="entryForm">
+        <label>Date:</label>
+        <input type="date" id="entryDate" required />
+        <label>Flow Intensity:</label>
+        <select id="entryFlow">
+          <option>Light</option>
+          <option>Medium</option>
+          <option>Heavy</option>
+        </select>
+        <label>Bleeding Duration (days):</label>
+        <input type="number" id="entryDuration" min="1" max="10" />
+        <label>Notes:</label>
+        <textarea id="entryNotes" placeholder="Mood, cramps, energy levels..."></textarea>
+        <div class="btns">
+          <button type="submit">Save</button>
+          <button type="button" id="clearForm">Clear</button>
+        </div>
+      </form>
+
+      <div class="entries-header">
+        <h3>Saved Entries</h3>
+        <div class="actions">
+          <button id="exportBtn">Export</button>
+          <button id="deleteAll">Delete All</button>
+        </div>
+      </div>
+      <div id="entriesList" class="entries-list"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
