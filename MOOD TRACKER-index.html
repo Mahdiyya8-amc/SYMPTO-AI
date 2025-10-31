@@ -1,50 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mood Tracker</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mood Tracker — Dark Base</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Mood Tracker</h1>
+  <div class="mode-toggle-top">
+    <button id="theme-mode-toggle" title="Toggle light/dark" aria-label="Toggle light dark">☀️</button>
+  </div>
 
-        <div class="entry-form">
-            <input type="date" id="entry-date" class="large-input">
+  <div class="app">
+    <!-- LEFT PANEL: Interaction + theme picker (always visible) -->
+    <aside class="left-panel">
+      <div class="left-top">
+        <h2>🎨 What colour are you feeling today?</h2>
+        <div class="picker-row">
+          <input id="theme-picker" type="color" value="#2b6777" aria-label="Theme color picker" />
+          <button id="reset-theme" class="small-btn">Reset</button>
+        </div>
+        <p class="left-note">Change the color anytime — the whole page updates.</p>
+      </div>
 
-            <!-- Mood picker -->
-            <select id="mood-picker" class="large-input">
-                <option value="">Select your mood</option>
-                <option value="😄">Happy 😄</option>
-                <option value="😢">Sad 😢</option>
-                <option value="😐">Neutral 😐</option>
-                <option value="😠">Angry 😠</option>
-                <option value="🤩">Excited 🤩</option>
+      <div class="interaction card">
+        <h3 class="section-title">🙂 How are you feeling today?</h3>
+        <div class="mood-options">
+          <button class="mood-btn" data-mood="😄">Happy <span>😄</span></button>
+          <button class="mood-btn" data-mood="😢">Sad <span>😢</span></button>
+          <button class="mood-btn" data-mood="😐">Neutral <span>😐</span></button>
+          <button class="mood-btn" data-mood="😠">Angry <span>😠</span></button>
+          <button class="mood-btn" data-mood="🤩">Excited <span>🤩</span></button>
+        </div>
+
+        <div id="entry-step" class="entry-step hidden">
+          <div class="entry-form">
+            <input id="entry-date" type="date" class="large-input" />
+            <select id="mood-picker-select" class="large-input">
+              <option value="">Select your mood</option>
+              <option value="😄">Happy 😄</option>
+              <option value="😢">Sad 😢</option>
+              <option value="😐">Neutral 😐</option>
+              <option value="😠">Angry 😠</option>
+              <option value="🤩">Excited 🤩</option>
             </select>
-
-            <textarea id="entry-text" placeholder="Write your mood or thoughts..." class="large-input"></textarea>
-
+            <textarea id="entry-text" class="large-input" placeholder="Write your mood or thoughts..."></textarea>
             <button id="add-entry-btn" class="large-btn">Add Entry</button>
-        </div>
+          </div>
 
-        <!-- Theme selector -->
-        <div class="theme-selector">
-            <label for="theme-color">Choose Theme Color: </label>
-            <input type="color" id="theme-color" value="#ff7f50">
-        </div>
+          <div class="controls">
+            <button id="toggle-entries-btn" class="small-btn">Show Previous Entries</button>
+          </div>
 
-        <!-- Show previous entries button -->
-        <button id="toggle-entries-btn" class="large-btn">Show Previous Entries</button>
-        <div id="entries-container">
+          <div id="entries-container" class="entries-container hidden">
             <ul id="entries-list"></ul>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: Analytics (hidden until entry) -->
+    <main class="right-panel">
+      <header class="header">
+        <h1>Mood Tracker</h1>
+      </header>
+
+      <section id="right-placeholder" class="card center-placeholder">
+        <p class="placeholder-text">Make your first entry — your personalized insights will appear here.</p>
+      </section>
+
+      <section id="result-section" class="card hidden fade-up">
+        <div id="mood-message" class="mood-message">
+          <h3 id="mood-heading" class="mood-heading"></h3>
+          <div id="mood-quote" class="mood-quote"></div>
+          <div id="current-emoji" class="current-emoji"></div>
         </div>
 
-        <canvas id="moodChart"></canvas>
-        <p id="mood-review" class="mood-review"></p>
-    </div>
+        <div id="chart-area" class="chart-area">
+          <canvas id="moodChart"></canvas>
+          <p id="streak-info" class="streak-info large"></p>
+        </div>
+      </section>
+    </main>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
