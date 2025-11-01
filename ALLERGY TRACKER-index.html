@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Allergies Tracker</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Sticky disclaimer -->
+  <div id="disclaimer" class="disclaimer">
+    ⚠️ <strong>Disclaimer:</strong> The information on this page is for educational purposes only and <strong>cannot be used to diagnose or treat any disease.</strong> Consult a healthcare professional for medical advice.
+  </div>
+
+  <main class="page">
+    <section class="card">
+      <header class="card-header">
+        <h1>Allergies Tracker</h1>
+      </header>
+
+      <!-- Search -->
+      <div class="search-area">
+        <input id="query" placeholder="Type allergy or symptoms (e.g. pollen allergy, dust allergy, peanut)"/>
+        <button id="fetchBtn" class="btn">🔍 Fetch Info</button>
+      </div>
+
+      <div id="loader" class="loader" hidden>⏳ Fetching allergy info...</div>
+
+      <!-- Result card -->
+      <article id="resultCard" class="result-card" hidden>
+        <div class="result-top">
+          <h2 id="resName">—</h2>
+          <div id="resSeverity" class="chip">Severity: —</div>
+        </div>
+
+        <div class="result-body">
+          <p><strong>Symptoms:</strong> <span id="resSymptoms">—</span></p>
+          <p><strong>Causes:</strong> <span id="resCauses">—</span></p>
+          <p><strong>Precautions:</strong> <span id="resPrecautions">—</span></p>
+          <p><strong>Self-diagnosable / Needs medical attention:</strong> <span id="resMedical">—</span></p>
+        </div>
+
+        <div class="result-foot">
+          <div class="chart-wrap">
+            <canvas id="commonnessChart" width="160" height="160"></canvas>
+            <div id="commonnessNote" class="muted small">—</div>
+          </div>
+
+          <div class="result-actions">
+            <button id="saveFetched" class="btn subtle">➕ Save as entry</button>
+          </div>
+        </div>
+      </article>
+
+      <hr/>
+
+      <!-- Personal entries -->
+      <section class="personal">
+        <h3>Add Personal Entry (optional)</h3>
+        <div class="personal-row">
+          <input id="personalName" placeholder="Name (optional, e.g. Dust)"/>
+          <select id="personalSeverity">
+            <option value="">Severity (optional)</option>
+            <option>Mild</option>
+            <option>Moderate</option>
+            <option>Severe</option>
+          </select>
+          <input id="personalDate" type="date"/>
+        </div>
+
+        <textarea id="personalNotes" placeholder="Notes (where it happened, what helped, etc.)"></textarea>
+
+        <div class="personal-actions">
+          <button id="savePersonal" class="btn">Save Personal Entry</button>
+          <label class="show-toggle"><input id="toggleEntries" type="checkbox" checked/> Show previous entries</label>
+        </div>
+
+        <div id="entries" class="entries" hidden></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="script.js" defer></script>
+
+  <button id="toggleEntries">Hide Previous Entries</button>
+
+<div id="entries">
+  <!-- previous period entries will appear here -->
+</div>
+
+
+  <script>
+/* -------- Show / Hide Previous Entries (fixed) -------- */
+const toggleEntriesBtn = document.getElementById("toggleEntries");
+const previousEntriesDiv = document.getElementById("entries");
+
+let entriesVisible = true;
+
+toggleEntriesBtn.addEventListener("click", () => {
+  entriesVisible = !entriesVisible;
+
+  if (entriesVisible) {
+    previousEntriesDiv.style.display = "block";
+    toggleEntriesBtn.textContent = "Hide Previous Entries";
+  } else {
+    previousEntriesDiv.style.display = "none";
+    toggleEntriesBtn.textContent = "Show Previous Entries";
+  }
+});
+</script>
+
+</body>
+</html>
